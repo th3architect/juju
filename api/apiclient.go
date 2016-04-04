@@ -49,7 +49,7 @@ var (
 
 // state is the internal implementation of the Connection interface.
 type state struct {
-	client *rpc.Conn
+	client rpc.ClientConn
 	conn   *websocket.Conn
 
 	// addr is the address used to connect to the API server.
@@ -147,8 +147,7 @@ func open(
 		return nil, errors.Trace(err)
 	}
 
-	client := rpc.NewConn(jsoncodec.NewWebsocket(conn), nil)
-	client.Start()
+	client := rpc.NewClientConn(jsoncodec.NewWebsocket(conn))
 
 	bakeryClient := opts.BakeryClient
 	if bakeryClient == nil {
@@ -570,13 +569,6 @@ func (s *state) Close() error {
 // Broken returns a channel that's closed when the connection is broken.
 func (s *state) Broken() <-chan struct{} {
 	return s.broken
-}
-
-// RPCClient returns the RPC client for the state, so that testing
-// functions can tickle parts of the API that the conventional entry
-// points don't reach. This is exported for testing purposes only.
-func (s *state) RPCClient() *rpc.Conn {
-	return s.client
 }
 
 // Addr returns the address used to connect to the API server.
